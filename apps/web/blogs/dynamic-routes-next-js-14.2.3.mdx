@@ -1,0 +1,125 @@
+export const metadata = {
+  title: 'Handling Dynamic Routes and Fallbacks in Next.js 14.2.3: A Deep Dive into Complex Routing Scenarios',
+  description: 'Learn how to effectively handle dynamic routes with catch-all segments and fallback rewrites in Next.js 14.2.3, including solutions for non-GET/HEAD request routing issues.',
+  date: '2024-07-29T12:00:00Z',
+  tags: ['nextjs', 'routing', 'web-development', 'javascript', 'middleware'],
+}
+
+As software engineers, we often encounter challenges when implementing complex routing scenarios. In this article, we'll explore how to handle dynamic routes and fallbacks effectively in Next.js 14.2.3, with a particular focus on the app router.
+
+## The Challenge: Dynamic Routes with Catch-all Segments
+
+In a recent project, our team faced the task of implementing dynamic routes that support catch-all segments while enabling static site generation (SSG) at build time. Our goal was to ensure seamless integration between our new Next.js application and an existing legacy system.
+
+## Setting Up Dynamic Routes
+
+We configured our dynamic routes with `generateStaticParams`, which allowed me to specify parameters for static generation. Additionally, I set `dynamicParams` to `false`. This configuration ensured that any dynamic segments not included in `generateStaticParams` within `page.tsx` in my app directory would fallback to our other site via fallback rewrites defined in `next.config.js`.
+
+## Initial Assumptions and Configuration
+
+My initial setup assumed that any route or endpoint not handled by the new application would fall back to the corresponding routes in our existing application. This setup aimed to facilitate the build-out of our new application while seamlessly redirecting unhandled routes to the fallback destination URL specified in our Next.js configuration.
+
+```javascript
+// next.config.js
+module.exports = {
+  // Other configuration options
+  async rewrites() {
+    return {
+      fallback: [
+        {
+          source: '/:path*',
+          destination: 'https://legacy-site.com/:path*',
+        },
+      ],
+    };
+  },
+};
+```
+
+## Encountering a 405 Error
+
+As we progressed, we encountered an unexpected issue: any non-GET/HEAD requests not explicitly handled by our application resulted in a **405 Method Not Allowed** error. We anticipated that all unhandled requests, including non-GET/HEAD methods, would be redirected to the fallback destination URL, but this was not the case.
+
+## Debugging the Issue
+
+To diagnose the problem, I created a fresh Next.js application mirroring our base structure. Through debugging, I discovered that the fallback rewrites did not handle non-GET/HEAD requests correctly. Moving our rewrites into the **afterFiles** phase solved this issue, ensuring that all HTTP request methods were handled appropriately.
+
+```javascript
+// next.config.js
+module.exports = {
+  // Other configuration options
+  async rewrites() {
+    return {
+      afterFiles: [
+        // These rewrites are checked after pages/public files and route handlers
+        // are checked but before dynamic routes. This allows us to send non-GET/HEAD requests.
+        {
+          source: '/:path*',
+          has: [
+            {
+              type: 'header',
+              key: 'x-non-get-head-method-type',
+            },
+          ],
+          destination: 'https://legacy-site.com/:path*',
+        },
+      ],
+      fallback: [
+        {
+          source: '/:path*',
+          destination: 'https://legacy-site.com/:path*',
+        },
+      ],
+    };
+  },
+};
+```
+
+## Implementing Middleware for Non-GET/HEAD Requests
+
+To handle non-GET/HEAD requests, I implemented middleware to modify the request headers. If an incoming request was not a GET/HEAD, the middleware added a custom header `x-non-get-head-method-type`.
+
+```typescript
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+// https://vercel.com/templates/next.js/edge-functions-modify-request-header
+export function middleware(request: NextRequest) {
+  if (
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+    request.method !== 'HEAD' &&
+    request.method !== 'GET'
+  ) {
+    // Clone the request headers
+    // You can modify them with headers API: https://developer.mozilla.org/en-US/docs/Web/API/Headers
+    const requestHeaders = new Headers(request.headers);
+
+    // Add new request headers
+    requestHeaders.set('x-non-get-head-method-type', 'NonGetHead');
+
+    return NextResponse.next({
+      request: {
+        // New request headers
+        headers: requestHeaders,
+      },
+    });
+  }
+
+  // For other methods, pass the request to the next middleware or handler
+  return NextResponse.next();
+}
+```
+
+This setup allowed the requests with the custom header to be processed through the **afterFiles** phase in the rewrites, ensuring all HTTP methods were correctly routed.
+
+## Key Takeaway
+
+The critical insight from this experience is the importance of using the **afterFiles** phase for handling non-GET/HEAD requests in the app router of Next.js 14.2.3. This approach, combined with custom middleware, ensures all HTTP methods are correctly routed and fallbacks are properly managed.
+
+## Conclusion
+
+By refactoring our Next.js configuration and implementing custom middleware, we achieved a robust solution for handling dynamic routes and fallbacks. This approach not only solved our immediate problem but also highlighted the flexibility and power of Next.js's routing capabilities.
+
+Remember, when working with complex routing scenarios in Next.js, thorough testing and debugging are crucial. By understanding and leveraging advanced features like **afterFiles** rewrites and custom middleware, you can build more resilient and scalable applications.
+
+Happy coding! 🚀

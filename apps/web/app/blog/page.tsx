@@ -1,0 +1,31 @@
+import { getBlogPosts } from '@/utils/getBlogPost'
+
+export default function BlogIndex() {
+    const posts = getBlogPosts()
+
+    return (
+        <div className="max-w-4xl mx-auto py-8 px-4">
+            <div className='flex flex-row items-center gap-2 text-2xl'>
+                <div>
+                    <a
+                        href="/"
+                        rel="noopener noreferrer"
+                    >
+                        Home
+                    </a>
+                </div>
+            </div>
+
+            <h1 className="text-3xl font-bold mb-8">Blog Posts</h1>
+            <div className="space-y-4">
+                {posts.map(post => (
+                    <article key={post.slug}>
+                        <a href={`/blog/${post.slug}`}>
+                            <h2 className="text-xl font-semibold capitalize">{post.title}</h2>
+                        </a>
+                    </article>
+                ))}
+            </div>
+        </div>
+    )
+}
