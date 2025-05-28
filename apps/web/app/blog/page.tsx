@@ -1,7 +1,19 @@
 import { getBlogPosts } from '@/utils/getBlogPost'
 
-export default function BlogIndex() {
+export default async function BlogIndex() {
     const posts = getBlogPosts()
+
+    // Sort posts by date in descending order (newest first)
+    const postsWithMetadata = await Promise.all(
+        posts.map(async (post) => {
+            const { metadata } = await import(`@/blogs/${post.slug}.mdx`)
+            return { ...post, date: metadata.date }
+        })
+    )
+
+    const sortedPosts = postsWithMetadata.sort((a, b) => {
+        return new Date(b.date).getTime() - new Date(a.date).getTime()
+    })
 
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
@@ -18,7 +30,7 @@ export default function BlogIndex() {
 
             <h1 className="text-3xl font-bold mb-8">Blog Posts</h1>
             <div className="space-y-4">
-                {posts.map(post => (
+                {sortedPosts.map(post => (
                     <article key={post.slug}>
                         <a href={`/blog/${post.slug}`}>
                             <h2 className="text-xl font-semibold capitalize">{post.title}</h2>
