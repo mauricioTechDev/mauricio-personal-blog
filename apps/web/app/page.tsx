@@ -49,6 +49,20 @@ export default function Home() {
           />
           X →
         </a>
+        <a
+          href="https://github.com/mauricioTechDev"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Image
+            aria-hidden
+            src="/github.svg"
+            alt="Github icon"
+            width={16}
+            height={16}
+          />
+          X →
+        </a>
       </footer>
     </div>
   );

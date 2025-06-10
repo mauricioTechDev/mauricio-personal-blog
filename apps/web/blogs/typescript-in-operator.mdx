@@ -5,8 +5,6 @@ export const metadata = {
   tags: ['typescript', 'type-safety', 'best-practices', 'type-narrowing', 'javascript'],
 }
 
-# The Power of TypeScript's 'in' Operator: Stop Writing Hacky Type Checks
-
 TypeScript gives us many tools to write safer code through its type system. One of the most underappreciated features is the `in` operator for type narrowing[^1]. In this article, I'll show you why the `in` operator should be your go-to solution when dealing with property checks and discriminated unions, and why many common alternatives lead to brittle, error-prone code.
 
 > **Important note:** The `in` operator checks for property existence, but does NOT check if the property value is `null` or `undefined`. It only confirms the property exists on the object or its prototype chain.
