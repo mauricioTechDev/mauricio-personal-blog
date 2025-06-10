@@ -1,84 +1,67 @@
-# Turborepo starter
+# Mauricio Acosta - Personal Website
 
-This Turborepo starter is maintained by the Turborepo core team.
+Welcome to my personal website repository! This is where I share my thoughts, experiences, and insights about technology and education. As a passionate software engineer, I use this platform to document my journey and contribute to the tech community.
 
-## Using this example
+## 🌐 Live Website
 
-Run the following command:
+Visit my website at [mauricioacosta.dev](https://mauricioacosta.dev)
+
+## 🚀 About This Project
+
+This is my personal website and blog built with modern web technologies. It serves as a platform where I:
+
+- Share my thoughts and experiences in software engineering
+- Write about technology trends and best practices
+- Document my learning journey
+- Connect with the tech community
+
+## 🛠️ Tech Stack
+
+This project is built using:
+
+- [Next.js](https://nextjs.org/) - React framework for production
+- [Turborepo](https://turbo.build/repo) - High-performance build system
+- [TypeScript](https://www.typescriptlang.org/) - For type safety
+- [Tailwind CSS](https://tailwindcss.com/) - For styling
+
+### Project Structure
+
+The repository is organized as a monorepo with the following packages:
+
+- `web`: The main Next.js application (my personal website)
+- `docs`: Documentation site
+- `@repo/ui`: Shared React components
+- `@repo/eslint-config`: Shared ESLint configurations
+- `@repo/typescript-config`: Shared TypeScript configurations
+
+## 🏗️ Development
+
+To run the project locally:
 
 ```sh
-npx create-turbo@latest
-```
+# Install dependencies
+pnpm install
 
-## What's inside?
-
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-pnpm build
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
+# Start development server
 pnpm dev
 ```
 
-### Remote Caching
+## 🔧 Build
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+To build the project:
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-npx turbo login
+```sh
+pnpm build
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+## 📝 License
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+This project is open source and available under the MIT License.
 
-```
-npx turbo link
-```
+## 🤝 Connect With Me
 
-## Useful Links
+- [LinkedIn](https://www.linkedin.com/in/mauriciotechdev/)
+- [GitHub](https://github.com/mauricioTechDev)
+- [Twitter/X](https://x.com/mauricioTechDev)
 
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+Feel free to reach out if you have any questions or would like to collaborate!

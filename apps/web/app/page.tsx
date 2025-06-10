@@ -1,5 +1,6 @@
 import Image from "next/image";
 import styles from "./page.module.css";
+import Link from "next/link";
 
 
 export default function Home() {
@@ -11,17 +12,17 @@ export default function Home() {
         </h1>
 
         <div className={styles.ctas}>
-          <a
+          <Link
             className={styles.primary}
             href="/blog"
             rel="noopener noreferrer"
           >
             Blog Post
-          </a>
+          </Link>
         </div>
       </main>
       <footer className={styles.footer}>
-        <a
+        <Link
           href="https://www.linkedin.com/in/mauriciotechdev/"
           target="_blank"
           rel="noopener noreferrer"
@@ -34,8 +35,8 @@ export default function Home() {
             height={16}
           />
           Linkedin
-        </a>
-        <a
+        </Link>
+        <Link
           href="https://x.com/mauricioTechDev"
           target="_blank"
           rel="noopener noreferrer"
@@ -47,9 +48,9 @@ export default function Home() {
             width={16}
             height={16}
           />
-          X →
-        </a>
-        <a
+          X
+        </Link>
+        <Link
           href="https://github.com/mauricioTechDev"
           target="_blank"
           rel="noopener noreferrer"
@@ -61,8 +62,8 @@ export default function Home() {
             width={16}
             height={16}
           />
-          X →
-        </a>
+          Github
+        </Link>
       </footer>
     </div>
   );
