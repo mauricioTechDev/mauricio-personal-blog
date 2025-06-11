@@ -4,7 +4,6 @@ import fs from 'fs'
 
 const getBlogPosts = () => {
     const postsDirectory = path.join(process.cwd(), 'blogs')
-    console.log(postsDirectory)
 
     const fileNames = fs.readdirSync(postsDirectory)
 

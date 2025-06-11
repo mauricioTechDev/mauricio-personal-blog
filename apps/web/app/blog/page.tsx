@@ -15,6 +15,7 @@ export default async function BlogIndex() {
     const sortedPosts = postsWithMetadata.sort((a, b) => {
         return new Date(b.date).getTime() - new Date(a.date).getTime()
     })
+    console.log(sortedPosts)
 
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
@@ -34,7 +35,7 @@ export default async function BlogIndex() {
                 {sortedPosts.map(post => (
                     <article key={post.slug}>
                         <Link href={`/blog/${post.slug}`}>
-                            <h2 className="text-xl font-semibold capitalize">{post.title}</h2>
+                            <h2 className="text-xl uppercase">{post.title}</h2>
                         </Link>
                     </article>
                 ))}

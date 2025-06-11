@@ -1,0 +1,98 @@
+export const metadata = {
+  title: 'Building and Testing MCP Servers: A Weather Server Journey',
+  description: 'Exploring the Model Context Protocol (MCP) by building a weather server, discovering debugging techniques, and uncovering opportunities for improved developer experience.',
+  date: '2025-06-10T12:00:00Z',
+  tags: ['mcp', 'model-context-protocol', 'claude', 'ai-tools', 'debugging', 'typescript'],
+  authors: ['Your Name'],
+  abstract: 'Exploring the Model Context Protocol (MCP) by building a weather server, discovering debugging techniques, and uncovering opportunities for improved developer experience.',
+}
+
+import Image from 'next/image'
+
+# Building and Testing MCP Servers: A Weather Server Journey
+
+As software engineers, we're always looking for new ways to extend the capabilities of AI systems. Recently, I dove into the [Model Context Protocol (MCP)](https://modelcontextprotocol.io) and built a weather server, uncovering both the exciting potential and the current challenges in developing these integrations.
+
+## Understanding the Model Context Protocol
+
+The Model Context Protocol (MCP) is an open standard introduced by [Anthropic in November 2024](https://www.anthropic.com/news/model-context-protocol) to standardize how AI assistants connect to external data sources and tools. Think of MCP like a USB-C port for AI applications—just as USB-C provides a standardized way to connect devices to peripherals, MCP provides a standardized way to connect AI models to different data sources and tools.  The protocol offers a universal standard that replaces fragmented integrations with a single, cohesive approach.
+
+## Getting Started with MCP
+
+My journey began with the [MCP documentation](https://modelcontextprotocol.io/quickstart/server). Following the quickstart guide, I was able to read through the code, understand how the pieces fit together, and build my first MCP server focused on weather data.  Within a short time, I had successfully connected my weather server to Claude Desktop and was asking questions about the weather, watching as my MCP server responded to the requests.
+
+## The Debugging Challenge
+
+However, a question quickly emerged: "This is really cool, but how can I build MCP servers in a way that allows me to easily test my changes and see how an LLM might interact with my server?"
+
+As software engineers, we thrive on visibility into our systems. We want logs, traces, and real-time feedback about how our code is performing. This need for observability led me down an interesting path of discovery.
+
+## Finding the Logs
+
+My search through the MCP documentation revealed a hidden gem: Claude Desktop stores logs in a specific directory on macOS. Claude.app logging related to MCP is written to log files in `~/Library/Logs/Claude` on macOS and `%APPDATA%\Claude\logs` on Windows.
+
+```bash title="View live MCP logs"
+# View live logs as they're generated
+tail -n 20 -f ~/Library/Logs/Claude/mcp*.log
+```
+
+This command gave me a real-time view of the logs as I interacted with my server through Claude. The mcp.log file contains general logging about MCP connections and connection failures, while files named mcp-server-SERVERNAME.log contain error (stderr) logging from the named server. While this was interesting and helpful for debugging, I felt there was still room for improvement in the developer experience.
+
+## Discovering MCP Inspector
+
+My exploration continued, and I discovered the MCP Inspector—an interactive developer tool for testing and debugging MCP servers. The Inspector allows you to make direct calls to your server, see the request and response payloads, test different tool invocations, and view server notifications.
+
+The Inspector runs directly through npx without requiring installation:
+
+```bash title="Run MCP Inspector"
+npx @modelcontextprotocol/inspector node build/index.js
+```
+<Image 
+  src="/mcp-weather-inspector-pic-2025-06-10.png" 
+  alt="MCP Inspector showing weather server tools and responses"
+  width={800}
+  height={600}
+  className="rounded-lg shadow-lg"
+/>
+
+The MCP Inspector provides a visual interface allowing developers to launch and interact with MCP servers, inspect available tools, resources, and prompts, send requests and view responses in real-time, and monitor server behavior and logs.
+
+While the MCP Inspector is a step in the right direction, I found the development workflow could be more efficient. Currently, testing changes requires manual rebuilding and restarting, which interrupts the flow of development.
+
+## The Need for Hot Reloading
+
+For MCP server development to truly shine, especially when using TypeScript, we need hot reloading capabilities. Modern development workflows benefit from tools like nodemon with ts-node, which can automatically restart the Node.js process when TypeScript files change, providing automatic reloading without manual intervention.
+
+Imagine a workflow where:
+
+1. You save changes to your server code
+2. The TypeScript compiler automatically rebuilds
+3. The MCP Inspector automatically picks up the new build
+4. You can immediately test your changes
+
+This approach would dramatically improve the developer experience by providing seamless workflow automation, improved productivity through focus on writing code without interruptions, and faster development cycles with no need to manually recompile and restart applications after every change.
+
+## Looking Ahead: Tool Selection and Nuanced Decisions
+
+As I continue exploring MCP servers, one intriguing question remains: How do LLMs decide which tool to use from an MCP server?
+
+Research in LLM function calling shows that models make intelligent decisions about which tool to use and what parameters to pass, but this process involves complex decision-making mechanisms that can benefit from structured approaches. Cursor for example limits the amount of [tools you can use to 40.](https://docs.cursor.com/context/model-context-protocol#mcp-resources) AI can struggle to effectively choose between all the available tools
+
+While we can add descriptions to our tools, what happens when you have multiple tools with nuanced differences? For example:
+- `get-current-weather` vs `get-weather-forecast`
+- `search-by-name` vs `search-by-id`
+- Tools with overlapping capabilities but different performance characteristics
+
+Integrating instruction-following data with function-calling tasks might significantly enhances function-calling capabilities
+
+- How descriptive should our tool names be?
+- What level of detail should we include in descriptions?
+- How can we test that LLMs consistently choose the right tool?
+
+## Conclusion
+
+Building MCP servers opens up exciting possibilities for giving LLMs controlled, systematic access to external systems and APIs. The Model Context Protocol represents a promising step toward more capable AI systems that can interact with the world in meaningful ways. While the current tooling is functional, there's significant opportunity to improve the developer experience through better debugging tools, hot reloading, and clearer guidance on tool design.
+
+As the ecosystem matures, AI systems will maintain context as they move between different tools and datasets, replacing today's fragmented integrations with a more sustainable architecture. For now, I'll continue experimenting with MCP servers, exploring best practices for tool design, and contributing to the growing community of developers extending AI capabilities through this protocol.
+
+Happy coding! 🚀
