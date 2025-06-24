@@ -1,25 +1,21 @@
-import { getBlogPosts } from '@/utils/getBlogPost'
+import { getBlogPostsWithMetadata, getAllUsedTags } from '@/utils/getBlogPost'
 import Link from 'next/link'
+import BlogFilters from './components/BlogFilters'
 
 export default async function BlogIndex() {
-    const posts = getBlogPosts()
+    const posts = await getBlogPostsWithMetadata()
+    const availableTags = await getAllUsedTags()
 
     // Sort posts by date in descending order (newest first)
-    const postsWithMetadata = await Promise.all(
-        posts.map(async (post) => {
-            const { metadata } = await import(`@/blogs/${post.slug}.mdx`)
-            return { ...post, date: metadata.date }
+    const sortedPosts = posts
+        .filter(post => post.metadata?.date)
+        .sort((a, b) => {
+            return new Date(b.metadata!.date).getTime() - new Date(a.metadata!.date).getTime()
         })
-    )
-
-    const sortedPosts = postsWithMetadata.sort((a, b) => {
-        return new Date(b.date).getTime() - new Date(a.date).getTime()
-    })
-    console.log(sortedPosts)
 
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
-            <div className='flex flex-row items-center gap-2 text-2xl'>
+            <div className='flex flex-row items-center gap-2 text-2xl mb-8'>
                 <div>
                     <Link
                         href="/"
@@ -31,15 +27,11 @@ export default async function BlogIndex() {
             </div>
 
             <h1 className="text-3xl font-bold mb-8">Blog Posts</h1>
-            <div className="space-y-4">
-                {sortedPosts.map(post => (
-                    <article key={post.slug}>
-                        <Link href={`/blog/${post.slug}`}>
-                            <h2 className="text-xl uppercase">{post.title}</h2>
-                        </Link>
-                    </article>
-                ))}
-            </div>
+            
+            <BlogFilters 
+                availableTags={availableTags}
+                posts={sortedPosts}
+            />
         </div>
     )
 }

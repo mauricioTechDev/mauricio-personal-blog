@@ -38,6 +38,19 @@ a {
   text-decoration: none;
 }
 
+/* Button padding overrides for global reset */
+.btn-primary {
+  padding: 8px 32px !important;
+}
+
+.btn-secondary {
+  padding: 8px 16px !important;
+}
+
+.btn-tag, .btn-tag-selected {
+  padding: 4px !important;
+}
+
 .imgDark {
   display: none;
 }
