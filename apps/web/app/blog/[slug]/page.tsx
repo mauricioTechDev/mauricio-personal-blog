@@ -1,5 +1,7 @@
 import { getBlogPosts } from "@/utils/getBlogPost"
+import { TAG_METADATA } from "@/lib/blog-tags"
 import Link from "next/link"
+import { Header } from "@/components/header"
 
 
 type BlogPageProps = {
@@ -32,8 +34,10 @@ export default async function BlogPage({ params }: BlogPageProps) {
     }).format(date)
 
     return (
-        <div className='flex flex-col items-center gap-6 py-6'>
-            <div className='flex flex-row items-center gap-2 text-2xl'>
+        <div>
+            <Header />
+            <div className='flex flex-col items-center gap-6 py-6'>
+                <div className='flex flex-row items-center gap-2 text-2xl'>
                 <div>
                     <Link
                         href="/"
@@ -60,21 +64,28 @@ export default async function BlogPage({ params }: BlogPageProps) {
                         <h1 className='mb-2 text-4xl font-bold'>{title}</h1>
                         <div className='flex items-center gap-2 py-2'>
                             <span className='text-sm'>{formattedDate}</span>|
-                            <div className='flex gap-1'>
-                                {tags.map((tag) => (
-                                    <span
-                                        key={tag}
-                                        className='p-3 text-xs'
-                                    >
-                                        {tag} |
-                                    </span>
-                                ))}
+                            <div className='flex gap-1 flex-wrap'>
+                                {tags.map((tag) => {
+                                    const tagMeta = TAG_METADATA[tag as keyof typeof TAG_METADATA] || { 
+                                        label: tag, 
+                                        color: 'bg-gray-100 text-gray-800' 
+                                    };
+                                    return (
+                                        <span
+                                            key={tag}
+                                            className={`px-3 py-2 rounded-full text-xs font-medium ${tagMeta.color}`}
+                                        >
+                                            {tagMeta.label}
+                                        </span>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>
                     {/* The markdown content */}
                     <MDXContent />
                 </article>
+            </div>
             </div>
         </div>
     )

@@ -1,11 +1,13 @@
 import Image from "next/image";
 import styles from "./page.module.css";
 import Link from "next/link";
+import { Header } from "@/components/header";
 
 
 export default function Home() {
   return (
     <div className={styles.page}>
+      <Header />
       <main className={styles.main}>
         <h1 className='text-4xl'>
           Mauricio Acosta <code>Software Engineer</code>

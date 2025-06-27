@@ -1,6 +1,7 @@
 import { getBlogPostsWithMetadata, getAllUsedTags } from '@/utils/getBlogPost'
 import Link from 'next/link'
 import BlogFilters from './components/BlogFilters'
+import { Header } from '@/components/header'
 
 export default async function BlogIndex() {
     const posts = await getBlogPostsWithMetadata()
@@ -14,8 +15,10 @@ export default async function BlogIndex() {
         })
 
     return (
-        <div className="max-w-4xl mx-auto py-8 px-4">
-            <div className='flex flex-row items-center gap-2 text-2xl mb-8'>
+        <div>
+            <Header />
+            <div className="max-w-4xl mx-auto py-8 px-4">
+                <div className='flex flex-row items-center gap-2 text-2xl mb-8'>
                 <div>
                     <Link
                         href="/"
@@ -27,11 +30,11 @@ export default async function BlogIndex() {
             </div>
 
             <h1 className="text-3xl font-bold mb-8">Blog Posts</h1>
-            
-            <BlogFilters 
-                availableTags={availableTags}
-                posts={sortedPosts}
-            />
+                <BlogFilters 
+                    availableTags={availableTags}
+                    posts={sortedPosts}
+                />
+            </div>
         </div>
     )
 }

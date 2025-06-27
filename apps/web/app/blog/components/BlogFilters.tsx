@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import { BlogTag, TAG_METADATA } from '@/lib/blog-tags'
 import { BlogPost } from '@/utils/getBlogPost'
-import { Button } from '@repo/ui/button'
+import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
 interface BlogFiltersProps {
@@ -63,8 +63,9 @@ export default function BlogFilters({ availableTags, posts }: BlogFiltersProps) 
                             <Button
                                 key={tag}
                                 onClick={() => toggleTag(tag)}
-                                variant={isSelected ? 'tag-selected' : 'tag'}
-                                className={isSelected ? '' : tagMeta.color}
+                                variant={isSelected ? 'default' : 'outline'}
+                                size="sm"
+                                className={`rounded-full ${isSelected ? 'bg-blue-500 text-white hover:bg-blue-600' : `hover:opacity-80 ${tagMeta.color}`}`}
                                 title={tagMeta.description}
                             >
                                 {tagMeta.label}
@@ -87,7 +88,7 @@ export default function BlogFilters({ availableTags, posts }: BlogFiltersProps) 
                         <p className="text-gray-600 mb-4">No posts found with the selected tags.</p>
                         <Button
                             onClick={clearFilters}
-                            variant="primary"
+                            variant="outline"
                         >
                             Clear filters to see all posts
                         </Button>
@@ -114,7 +115,7 @@ export default function BlogFilters({ availableTags, posts }: BlogFiltersProps) 
                                         return (
                                             <span
                                                 key={tag}
-                                                className={`px-6 py-3 rounded-full text-xs font-medium ${tagMeta.color}`}
+                                                className={`px-2 py-2 rounded-full text-xs font-medium ${tagMeta.color}`}
                                             >
                                                 {tagMeta.label}
                                             </span>
