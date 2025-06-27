@@ -1,6 +1,5 @@
-import path from "path"
-import fs from 'fs'
 import { getBlogPosts } from "@/utils/getBlogPost"
+import Link from "next/link"
 
 
 type BlogPageProps = {
@@ -36,20 +35,20 @@ export default async function BlogPage({ params }: BlogPageProps) {
         <div className='flex flex-col items-center gap-6 py-6'>
             <div className='flex flex-row items-center gap-2 text-2xl'>
                 <div>
-                    <a
+                    <Link
                         href="/"
                         rel="noopener noreferrer"
                     >
                         Home
-                    </a>
+                    </Link>
                 </div>
                 <div >
-                    <a
+                    <Link
                         href="/blog"
                         rel="noopener noreferrer"
                     >
                         Blogs
-                    </a>
+                    </Link>
                 </div>
 
             </div>

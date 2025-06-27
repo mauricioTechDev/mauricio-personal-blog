@@ -55,7 +55,7 @@ const getFilteredBlogPosts = async (selectedTags?: BlogTag[]): Promise<BlogPost[
 
     return posts.filter(post => {
         if (!post.metadata?.tags) return false
-        return selectedTags.some(tag => post.metadata.tags.includes(tag))
+        return selectedTags.some(tag => post.metadata?.tags?.includes(tag))
     })
 }
 
