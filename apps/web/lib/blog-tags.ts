@@ -16,6 +16,9 @@ export const BLOG_TAGS = {
   CLAUDE: 'claude',
   MCP: 'mcp',
   LLM: 'llm',
+  CHAT_MODE: 'chat-mode',
+  CUSTOM_IMPLEMENTATION: 'custom-implementation',
+  PLANNING: 'planning',
 
   // Security & Safety
   SECURITY: 'security',
@@ -133,4 +136,20 @@ export const TAG_METADATA: Record<BlogTag, { label: string; description: string;
     description: 'Improving developer productivity and experience',
     color: 'bg-fuchsia-100 text-fuchsia-800',
   },
+  [BLOG_TAGS.CHAT_MODE]: {
+    label: 'Chat Mode',
+    description: 'Chat mode implementations and features',
+    color: 'bg-blue-100 text-blue-800',
+  },
+  [BLOG_TAGS.CUSTOM_IMPLEMENTATION]: {
+    label: 'Custom Implementation',
+    description: 'Custom code implementations and solutions',
+    color: 'bg-green-100 text-green-800',
+  },
+  [BLOG_TAGS.PLANNING]: {
+    label: 'Planning',
+    description: 'Planning methodologies and tools',
+    color: 'bg-purple-100 text-purple-800',
+  },
 };
+

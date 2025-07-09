@@ -1,0 +1,137 @@
+import { BLOG_TAGS } from '@/lib/blog-tags'
+
+export const metadata = {
+  title: 'Building a Custom GitHub Copilot Chat Mode for Better AI-Assisted Planning',
+  description: 'How I created a custom chat mode in GitHub Copilot to improve AI-assisted problem solving through structured planning and research workflows.',
+  date: '2025-07-08T12:00:00Z',
+  tags: [BLOG_TAGS.COPILOT, BLOG_TAGS.CHAT_MODE, BLOG_TAGS.AI_TOOLS, BLOG_TAGS.CUSTOM_IMPLEMENTATION, BLOG_TAGS.DEVELOPER_EXPERIENCE, BLOG_TAGS.PLANNING],
+  authors: ['Mauricio Acosta'],
+  abstract: 'Exploring how custom chat modes in GitHub Copilot can transform AI-assisted development through structured planning approaches and specialized agent workflows.',
+}
+
+As I've been working more with GitHub Copilot, I've become increasingly convinced that the key to getting better results from AI tools isn't just about better prompts—it's about better *processes*. One feature that's been particularly valuable in this journey is Copilot's concept of [chat modes](https://code.visualstudio.com/docs/copilot/chat/chat-modes), which essentially let you create different "agents" with custom instructions and tools.
+
+Today, I want to share my experience building a custom chat mode specifically designed for planning and problem-solving, and why I think this approach represents an important shift in how we work with AI assistants.
+
+## The Planning Problem
+
+Something I've noticed in my development workflow is that jumping straight into implementation—even with AI assistance—often leads to suboptimal solutions. I'd ask Copilot to solve a problem, it would give me code, I'd iterate on that code, and while the end result might work, it often felt like we were missing the forest for the trees.
+
+The missing piece was *planning*. Before writing any code, I wanted Copilot to:
+- Understand the request in depth
+- Research existing code and patterns
+- Identify dependencies and constraints
+- Create a structured plan with clear steps
+
+That's when I decided to create a custom chat mode specifically for this planning phase.
+
+## Introducing the Planning Chat Mode
+
+Here's the custom chat mode I created:
+
+\`\`\`markdown
+---
+description: 'Plan the solution for a problem.'
+tools: ['codebase', 'findTestFiles', 'githubRepo', 'search', 'searchResults', 'usages']
+---
+
+I need your help with the following problem. Please take a look, understand the request in depth, and if the request makes sense, research it, understand the existing code, then suggest a clear plan with steps to take to address the request.
+
+## Problem Statement
+{{request}}
+
+## Context
+{{context}}
+
+## Plan
+**Understand the Request**: Carefully read the problem statement and context to ensure a clear understanding of the request.
+
+**Research**: Use the `search` tool to find relevant information, documentation, or examples that relate to the problem.
+
+**Analyze Existing Code**:
+- Use the `codebase` tool to explore the existing codebase.
+- Identify key components, functions, or classes that are relevant to the request.
+- Use the `findTestFiles` tool to locate any existing tests that may provide insight into the functionality.
+
+**Identify Dependencies**: Use the `githubRepo` tool to check for any dependencies or libraries that may be relevant to the request.
+
+**Plan Steps**:
+- Break down the solution into manageable steps.
+- Clearly outline what needs to be done in each step.
+
+**Review and Refine**: Review the plan to ensure it is comprehensive and addresses the request effectively.
+
+**Document the Plan**: Write down the plan in a clear and concise manner, ensuring it is easy to follow.
+
+**Prepare for Implementation**: If necessary, prepare any additional information or resources needed for the implementation phase.
+
+**Feedback Loop**:
+- Be open to feedback on the plan.
+- Adjust the plan based on any new insights or suggestions.
+
+**Final Review**: Before proceeding with implementation, conduct a final review of the plan to ensure all aspects of the request are covered and the plan is feasible.
+
+## Expected Outcome
+A clear and actionable plan that outlines the steps needed to address the request, including any necessary research, analysis of existing code, and identification of dependencies. The plan should be detailed enough to guide the implementation phase and should be easy to understand for anyone involved in the project.
+
+## Tools
+- `codebase`: To explore the existing codebase and understand the current implementation.
+- `findTestFiles`: To locate existing tests that may provide insight into the functionality.
+- `githubRepo`: To check for dependencies or libraries relevant to the request.
+- `search`: To find relevant information, documentation, or examples related to the problem in this workspace.
+- `searchResults`: To review the results of the search and identify useful resources.
+- `usages`: To find where specific functions or components are used within the codebase, which can help in understanding their context and relevance to the request.
+\`\`\`
+
+## Why This Approach Works
+
+What I've found is that this structured approach consistently produces better outcomes than jumping straight into implementation. Here's why:
+
+### 1. **Forces Deep Understanding**
+By requiring the AI to understand the request thoroughly before proposing solutions, we avoid the common pitfall of solving the wrong problem efficiently.
+
+### 2. **Leverages Existing Code**
+The emphasis on researching existing code means solutions are more likely to follow established patterns and integrate smoothly with the existing codebase.
+
+### 3. **Reduces Technical Debt**
+By identifying dependencies and constraints upfront, we avoid quick fixes that create problems down the line.
+
+### 4. **Creates Reusable Knowledge**
+The structured output serves as documentation that can be referenced later or shared with team members.
+
+## The Workflow Evolution
+
+Currently, I keep this chat mode in my local `.git/info/exclude` file, but I'm considering creating a PR to share it with my team. The workflow I've developed looks like this:
+
+1. **Planning Phase**: Use the custom chat mode to create a comprehensive plan
+2. **Implementation Phase**: Use the plan to guide implementation with regular Copilot assistance
+3. **Iteration Phase**: Refine and adjust based on what we learn during implementation
+
+## Planning vs. Iteration: A Balanced Approach
+
+One thing I've learned is that while iteration comes naturally to most developers (including myself), *planning* is a skill that needs to be deliberately practiced and systematized. This custom chat mode helps formalize that planning process.
+
+I'm not suggesting we plan everything to death—iteration is still crucial. But I've found that spending time on structured planning upfront makes the iteration phase much more focused and productive.
+
+## Looking Forward
+
+This experience has reinforced my belief that the future of AI-assisted development isn't just about better models—it's about better *processes* for working with those models. Custom chat modes represent a way to encode best practices and specialized workflows directly into our AI tools.
+
+Some areas I'm exploring next:
+- Chat modes for different types of problems (debugging, refactoring, testing)
+- Team-specific chat modes that encode our organization's best practices
+- Integration with other development tools and workflows
+
+## The Bigger Picture
+
+What excites me most about this approach is that it represents a shift from reactive to proactive AI assistance. Instead of asking AI to solve problems as they arise, we're creating systems that help us think through problems more systematically.
+
+This feels like the beginning of something bigger—a future where AI doesn't just help us write code, but helps us become better problem solvers and decision makers.
+
+*Have you experimented with custom chat modes or similar structured approaches to AI-assisted development? I'd love to hear about your experiences and what workflows you've found most effective.*
+
+## References
+
+- [GitHub Copilot Chat Modes Documentation](https://code.visualstudio.com/docs/copilot/chat/chat-modes)
+- [My previous post on copilot-instructions.md](/blog/copilot-instructions-experience)
+- [Exploring GitHub Copilot System Prompts](/blog/exploring-github-copilot-system-prompt)

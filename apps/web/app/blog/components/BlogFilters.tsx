@@ -71,7 +71,7 @@ export default function BlogFilters({ availableTags, posts }: BlogFiltersProps) 
                                 {tagMeta.label}
                             </Button>
                         )
-                    })}
+                    })}''
                 </div>
 
                 {selectedTags.length > 0 && (
