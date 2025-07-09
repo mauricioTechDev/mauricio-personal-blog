@@ -9,13 +9,13 @@ export function Header() {
         borderColor: 'var(--gray-alpha-200, rgba(0, 0, 0, 0.08))'
       }}
     >
-      <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
-        <div className="flex items-center space-x-2">
+      <div className="flex h-16 items-center justify-center px-4">
+        <div className="flex items-center gap-4">
           <h2 className="text-lg font-medium" style={{ color: 'var(--foreground)' }}>
             Mauricio Acosta
           </h2>
+          <ThemeToggle />
         </div>
-        <ThemeToggle />
       </div>
     </header>
   )

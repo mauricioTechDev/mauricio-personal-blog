@@ -11,6 +11,13 @@
   --primary-foreground: #f8fafc;
   --secondary: #f1f5f9;
   --secondary-foreground: #0f172a;
+  
+  /* Variables from page.module.css */
+  --gray-rgb: 0, 0, 0;
+  --gray-alpha-200: rgba(var(--gray-rgb), 0.08);
+  --gray-alpha-100: rgba(var(--gray-rgb), 0.05);
+  --button-primary-hover: #383838;
+  --button-secondary-hover: #f2f2f2;
 }
 
 .dark {
@@ -24,6 +31,13 @@
   --primary-foreground: #0f172a;
   --secondary: #1f2937;
   --secondary-foreground: #f8fafc;
+  
+  /* Dark theme variables from page.module.css */
+  --gray-rgb: 255, 255, 255;
+  --gray-alpha-200: rgba(var(--gray-rgb), 0.145);
+  --gray-alpha-100: rgba(var(--gray-rgb), 0.06);
+  --button-primary-hover: #ccc;
+  --button-secondary-hover: #1a1a1a;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -38,6 +52,13 @@
     --primary-foreground: #0f172a;
     --secondary: #1f2937;
     --secondary-foreground: #f8fafc;
+    
+    /* Dark theme variables from page.module.css */
+    --gray-rgb: 255, 255, 255;
+    --gray-alpha-200: rgba(var(--gray-rgb), 0.145);
+    --gray-alpha-100: rgba(var(--gray-rgb), 0.06);
+    --button-primary-hover: #ccc;
+    --button-secondary-hover: #1a1a1a;
   }
 }
 
@@ -96,6 +117,11 @@ pre {
   padding: 0.2rem 0.4rem;
   border-radius: 0.25rem;
   font-size: 0.9em;
+}
+
+/* Home page button styles */
+.home-btn-primary:hover {
+  background-color: var(--button-primary-hover) !important;
 }
 
 @media (prefers-color-scheme: dark) {
