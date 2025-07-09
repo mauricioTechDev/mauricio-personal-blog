@@ -5,11 +5,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ### Development
-- `pnpm dev` - Start development server (runs on port 3000 with turbopack)
-- `pnpm build` - Build all packages for production
-- `pnpm lint` - Run ESLint with max warnings set to 0
-- `pnpm check-types` - Run TypeScript type checking across all packages
-- `pnpm format` - Format code using Prettier
+- `pnpm run dev` - Start development server (runs on port 3000 with turbopack)
+- `pnpm run build` - Build all packages for production
+- `pnpm run lint` - Run ESLint with max warnings set to 0
+- `pnpm run check-types` - Run TypeScript type checking across all packages
+- `pnpm run format` - Format code using Prettier
 
 ### Package Management
 - Uses `pnpm` with workspaces
