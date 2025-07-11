@@ -34,7 +34,7 @@ Before diving into solutions, it's crucial to understand the different types of 
 - Only active in preview mode
 - Requires instant reactivity
 
-### 3. Linear State (Single-Branch Function Usage)
+### 3. Simple State (Single-Branch Function Usage)
 **Definition**: State with predictable, single-path execution - used in functions that always follow the same sequence of operations.
 
 **Usage Pattern**: Functions that use this state have one execution path - no conditional logic, no early returns, deterministic flow.
@@ -46,7 +46,7 @@ Before diving into solutions, it's crucial to understand the different types of 
 - Simple animations (fade in/out, slide transitions)
 - Current tab/page selections
 
-### 4. Conditional State (Multi-Branch Function Usage)
+### 4. Complex State (Multi-Branch Function Usage)
 **Definition**: State used in logic with multiple execution paths.
 
 **Usage Pattern**: Functions that use this state contain if/else statements, switch cases, early returns, or exception handling based on state values.
@@ -67,6 +67,147 @@ Before diving into solutions, it's crucial to understand the different types of 
 - Data that child components need from distant parents
 - Computed values from multiple components
 
+## Why Jotai Works Better with Storyblok Than React Context
+
+When working with Storyblok's `<StoryblokComponent />`, you'll quickly discover that React Context has significant limitations. Here's why Jotai is a better choice:
+
+### The Storyblok Component Rendering Challenge
+
+Storyblok uses a nested component rendering system where `<StoryblokComponent />` recursively renders components based on your CMS structure. This creates a unique challenge:
+
+```javascript
+// Storyblok renders components like this internally:
+function StoryblokComponent({ blok }) {
+  const Component = componentMap[blok.component];
+  
+  return (
+    <Component {...blok}>
+      {blok.children?.map(childBlok => 
+        <StoryblokComponent key={childBlok._uid} blok={childBlok} />
+      )}
+    </Component>
+  );
+}
+```
+
+### React Context Limitations with Storyblok
+
+❌ **Context doesn't properly pass down through Storyblok's component tree**:
+
+```javascript
+// ❌ This approach fails with Storyblok
+const DataContext = createContext();
+
+function ParentStoryblokComponent({ children }) {
+  const [data, setData] = useState(null);
+  
+  return (
+    <DataContext.Provider value={data}>
+      {/* Storyblok renders children internally - 
+          Context doesn't reach nested components */}
+      <StoryblokComponent blok={children} />
+    </DataContext.Provider>
+  );
+}
+
+function NestedStoryblokComponent() {
+  // ❌ This will be undefined!
+  const data = useContext(DataContext);
+  return <div>{data?.title}</div>;
+}
+```
+
+**Why this fails**:
+- Storyblok controls the component rendering tree
+- Context doesn't automatically flow through Storyblok's internal rendering
+- You can't manually wrap every nested component in Provider
+- Deep nesting makes Context prop drilling even worse
+
+### Jotai's Solution: Atomic State Subscription
+
+✅ **Jotai atoms work seamlessly with Storyblok's component system**:
+
+```javascript
+// ✅ Define atoms that work across any component depth
+const pageDataAtom = atom(null);
+const userPreferencesAtom = atom({});
+
+// ✅ Parent Storyblok component sets the data
+function ParentStoryblokComponent({ blok }) {
+  const setPageData = useSetAtom(pageDataAtom);
+  
+  useEffect(() => {
+    setPageData(blok.pageData);
+  }, [blok.pageData, setPageData]);
+
+  return <StoryblokComponent blok={blok.content} />;
+}
+
+// ✅ Any nested component can access the data
+function DeeplyNestedStoryblokComponent() {
+  const pageData = useAtomValue(pageDataAtom);
+  const preferences = useAtomValue(userPreferencesAtom);
+  
+  // Always works, regardless of nesting depth!
+  return <div>{pageData?.title}</div>;
+}
+```
+
+### Key Advantages for Storyblok Development
+
+1. **No Provider Chain Required**: Atoms work without wrapping components
+2. **Automatic Propagation**: State updates reach all subscribing components instantly
+3. **Flexible Component Architecture**: Works with Storyblok's dynamic component system
+4. **No Render Tree Dependency**: Components can access state regardless of their position in the tree
+5. **Better Performance**: Only components using specific atoms re-render
+
+### Real-World Storyblok + Jotai Example
+
+```javascript
+// atoms/storyblokPage.ts
+export const currentStoryAtom = atom(null);
+export const previewModeAtom = atom(false);
+export const storyblokBridgeAtom = atom(null);
+
+// Derived atom for page metadata
+export const pageMetaAtom = atom((get) => {
+  const story = get(currentStoryAtom);
+  return {
+    title: story?.content?.title || '',
+    description: story?.content?.description || '',
+    image: story?.content?.image?.filename || '',
+  };
+});
+
+// pages/[...slug].tsx
+export default function StoryblokPage({ story, preview }) {
+  const setStory = useSetAtom(currentStoryAtom);
+  const setPreviewMode = useSetAtom(previewModeAtom);
+  
+  useEffect(() => {
+    setStory(story);
+    setPreviewMode(preview);
+  }, [story, preview]);
+
+  return <StoryblokComponent blok={story.content} />;
+}
+
+// Any Storyblok component can now access story data
+function HeroComponent({ blok }) {
+  const story = useAtomValue(currentStoryAtom);
+  const pageMeta = useAtomValue(pageMetaAtom);
+  
+  return (
+    <section>
+      <h1>{blok.title || pageMeta.title}</h1>
+      <p>{story.content.description}</p>
+    </section>
+  );
+}
+```
+
+This pattern ensures that any component in your Storyblok component tree can access shared state without the complexity and limitations of React Context.
+
 ## The State Management Spectrum
 
 ### 1. Local React State (`useState`, `useReducer`)
@@ -75,7 +216,7 @@ Before diving into solutions, it's crucial to understand the different types of 
 - State is only needed by ONE component and its direct children
 - State is ephemeral/temporary (form inputs, toggles, loading states)
 - State doesn't need to persist across component unmounts
-- Linear State scenarios
+- Simple State scenarios
 - Performance is critical and you want to avoid unnecessary re-renders
 - High-frequency updates (like keystroke input)
 
@@ -183,69 +324,182 @@ export const availabilityAtom = atom((get) => {
 });
 ```
 
+## Understanding Jotai Atoms vs Providers
+
+Before diving into provider scoping, it's important to understand the relationship between atoms and providers in Jotai:
+
+### Atoms: The Building Blocks
+
+**Purpose**: Atoms are the fundamental building blocks of state in Jotai. They represent individual pieces of state, which can hold any type of data (e.g., strings, numbers, objects).
+
+**Benefits**: Atoms allow for fine-grained control over state updates and re-renders, as components only re-render when the specific atoms they depend on change.
+
+**Usage**: You create atoms using the `atom()` function and then access and update their values using the `useAtom` hook within your React components.
+
+### Providers: State Scope Management
+
+**Purpose**: Providers in Jotai act like React Context Providers, providing state to a specific component subtree.
+
+**Benefits**:
+- **Scope and isolation**: You can use Providers to create isolated scopes for different parts of your application, ensuring that atoms used within one subtree don't affect other parts of the application.
+- **Initial values**: Providers can be used to set initial values for atoms within their scope.
+- **Different states for subtrees**: Providers enable different subtrees to hold different atom values.
+- **Clear atom values**: Remounting a Provider can clear all atom values within its scope, which can be useful in certain scenarios.
+
+### Provider-less Mode vs Explicit Providers
+
+**Provider-less mode**: If you don't wrap your application in a Provider, Jotai will automatically use a default store for atoms. This is known as "provider-less mode".
+
+**When to use each approach**:
+
+- **For global state and simple cases**: You can often get away with not using a Provider at all, especially for smaller applications, as Jotai will implicitly use a default store.
+- **When needing specific control over state scope**: If you require different states for different parts of your application or need to provide specific initial values to atoms within a certain subtree, using a Provider is the recommended approach.
+- **In Server-Side Rendering (SSR)**: It's recommended to wrap the root of your app in a Provider when using SSR. This helps ensure that the atom store is recreated with each server request, preventing potential information leaks between requests.
+- **When separating concerns**: You might use multiple Providers to separate different application features or domains into independent stores, promoting better organization and maintainability.
+
 ## Provider Scoping Pattern
 
-One powerful pattern when using Jotai with Storyblok is provider scoping, which allows you to create isolated state stores for each page:
+One powerful pattern when using Jotai with Storyblok is provider scoping, which allows you to create isolated state stores for each page. Let's start with a simple example:
+
+**Simple Example: User Profile Page**
 
 ```javascript
-// ✅ Use Provider scoping to reset atoms for each page
-// pages/tours/[slug].tsx
+// atoms/userProfile.ts
+export const userNameAtom = atom('');
+export const userEmailAtom = atom('');
+export const isEditingAtom = atom(false);
+
+// pages/profile/[id].tsx
 import { createStore, Provider } from 'jotai';
 
-export default function TourPage({ tour }) {
-  // Create a new store instance for this specific tour page
-  const tourStore = createStore();
-
-  // Directly set initial values in the store
-  tourStore.set(currentTourAtom, tour);
-  tourStore.set(tourCodeAtom, tour.code); // e.g., "kad89"
-  tourStore.set(guestCountAtom, { adults: 2, children: 0 });
-  tourStore.set(selectedDateAtom, null);
+export default function UserProfilePage({ user }) {
+  // Create isolated store for this profile page
+  const profileStore = createStore();
+  
+  // Set initial values
+  profileStore.set(userNameAtom, user.name);
+  profileStore.set(userEmailAtom, user.email);
+  profileStore.set(isEditingAtom, false);
 
   return (
-    <Provider store={tourStore}>
-      {/* This will render TourPageContent and all of
-          the children will have access to the state */}
-      <StoryblokComponent blok={blokData}/>
+    <Provider store={profileStore}>
+      <StoryblokComponent blok={profileBlok} />
     </Provider>
   );
 }
 
-function TourPageContent() {
-  // No need to set tour data here - it's already in the store!
-  return (
-    <>
-      <TourHeader />
-      <TourGallery />
-      <TourDatePicker />
-      <TourGuestSelector />
-      <TourAddOns />
-      <TourPricingSummary />
-      <TourBookingForm />
-    </>
+// Components can access atoms without prop drilling
+const UserNameDisplay = () => {
+  const [name, setName] = useAtom(userNameAtom);
+  const isEditing = useAtomValue(isEditingAtom);
+  
+  return isEditing ? (
+    <input value={name} onChange={(e) => setName(e.target.value)} />
+  ) : (
+    <h1>{name}</h1>
   );
-}
+};
 
-// Each component can access the atoms without prop drilling
-const TourPricingSummary = () => {
-  const price = useAtomValue(tourPriceAtom);
-  const guests = useAtomValue(guestCountAtom);
-  const addOns = useAtomValue(selectedAddOnsAtom);
-  const tourCode = useAtomValue(tourCodeAtom);
-  const tour = useAtomValue(currentTourAtom);
-
-  // This will show "kad89" - proving the store isolation works
+const EditToggle = () => {
+  const [isEditing, setIsEditing] = useAtom(isEditingAtom);
   return (
-    <div className="tour-pricing-summary">
-      <h3>Pricing Summary for Tour {tourCode}</h3>
-      <p>Tour: {tour?.name} (Code: {tourCode})</p>
-      <p>Base Price: ${tour?.price}</p>
-      <p>Guests: {guests.adults} adults, {guests.children} children</p>
-      <p>Total: ${price}</p>
-    </div>
+    <button onClick={() => setIsEditing(!isEditing)}>
+      {isEditing ? 'Save' : 'Edit'}
+    </button>
   );
 };
 ```
+
+**Key Benefits**:
+- Each profile page has its own isolated state
+- Components can access atoms directly without prop drilling
+- Navigating between different profile pages creates fresh state
+- No accidental state sharing between different users
+
+**Complex Example: E-commerce Product Page**
+
+For more complex scenarios, you can have multiple related atoms:
+
+```javascript
+// atoms/productPage.ts
+export const productAtom = atom(null);
+export const selectedVariantAtom = atom(0);
+export const quantityAtom = atom(1);
+export const selectedColorAtom = atom('');
+
+// Derived atom
+export const priceAtom = atom((get) => {
+  const product = get(productAtom);
+  const variant = get(selectedVariantAtom);
+  const quantity = get(quantityAtom);
+  
+  if (!product) return 0;
+  return product.variants[variant].price * quantity;
+});
+
+// pages/products/[slug].tsx
+export default function ProductPage({ product }) {
+  const productStore = createStore();
+  
+  productStore.set(productAtom, product);
+  productStore.set(selectedVariantAtom, 0);
+  productStore.set(quantityAtom, 1);
+  productStore.set(selectedColorAtom, product.colors[0]);
+
+  return (
+    <Provider store={productStore}>
+      <StoryblokComponent blok={productBlok} />
+    </Provider>
+  );
+}
+```
+
+## When NOT to Use Providers
+
+While Providers are powerful, they're not always necessary. Avoid using Providers when:
+
+### ✅ Provider-less Mode is Sufficient
+
+```javascript
+// ✅ Simple global state - no Provider needed
+const themeAtom = atom('light');
+const sidebarOpenAtom = atom(false);
+const userSessionAtom = atom(null);
+
+// These work perfectly without any Provider wrapper
+function App() {
+  return (
+    <div>
+      <Header />
+      <Sidebar />
+      <MainContent />
+    </div>
+  );
+}
+```
+
+### ✅ Small Applications
+
+For applications with:
+- Simple state requirements
+- Few components needing shared state
+- No need for state isolation between pages
+- No SSR concerns
+
+### ✅ Truly Global State
+
+When state should be shared across the entire application:
+- User authentication status
+- Application theme
+- Global notifications
+- Shopping cart (that persists across pages)
+
+### ❌ Avoid Providers When:
+
+- You only have 1-2 atoms that are truly global
+- State doesn't need to be isolated between different pages/routes
+- You're building a simple SPA without complex state requirements
+- Over-engineering simple state management needs
 
 ## Master Decision Framework
 
@@ -270,10 +524,10 @@ When deciding on your state management approach, ask these questions in order:
 - **Occasionally** → Jotai is fine
 - **Rarely** → Either works
 
-### 5. "Is this linear state or conditional state?"
-- **Linear state** (single execution path: simple toggles, basic form fields, visual states) → Local state
-- **Conditional state** (multiple execution paths: validation logic, calculations, workflows) → Jotai
-- **Many related linear states** (coordinated toggles, multi-step processes, dependent fields) → Consider consolidating into conditional state with Jotai
+### 5. "Is this simple state or complex state?"
+- **Simple state** (single execution path: simple toggles, basic form fields, visual states) → Local state
+- **Complex state** (multiple execution paths: validation logic, calculations, workflows) → Jotai
+- **Many related simple states** (coordinated toggles, multi-step processes, dependent fields) → Consider consolidating into complex state with Jotai
 
 ## Visual Decision Tree
 
@@ -299,10 +553,10 @@ When deciding on your state management approach, ask these questions in order:
 │ └─ YES → Use Jotai derived atoms
 │ └─ NO → Continue ↓
 │
-├─ Is this linear or conditional state?
-│ ├─ Linear state (single path) → Use local state
-│ ├─ Conditional state (multiple paths) → Use Jotai atoms
-│ └─ Many related linear states → Consider consolidating with Jotai
+├─ Is this simple or complex state?
+│ ├─ Simple state (single path) → Use local state
+│ ├─ Complex state (multiple paths) → Use Jotai atoms
+│ └─ Many related simple states → Consider consolidating with Jotai
 ```
 
 ## State Categories & Recommendations
