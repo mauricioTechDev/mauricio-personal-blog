@@ -31,6 +31,13 @@ export const BLOG_TAGS = {
   TYPE_NARROWING: 'type-narrowing',
   DEBUGGING: 'debugging',
   DEVELOPER_EXPERIENCE: 'developer-experience',
+
+  // State Management & CMS
+  STORYBLOK: 'storyblok',
+  REACT: 'react',
+  JOTAI: 'jotai',
+  STATE_MANAGEMENT: 'state-management',
+  CMS: 'cms',
 } as const;
 
 // Type for valid tag values
@@ -150,6 +157,31 @@ export const TAG_METADATA: Record<BlogTag, { label: string; description: string;
     label: 'Planning',
     description: 'Planning methodologies and tools',
     color: 'bg-purple-100 text-purple-800',
+  },
+  [BLOG_TAGS.STORYBLOK]: {
+    label: 'Storyblok',
+    description: 'Storyblok CMS and headless content management',
+    color: 'bg-teal-100 text-teal-800',
+  },
+  [BLOG_TAGS.REACT]: {
+    label: 'React',
+    description: 'React framework and component patterns',
+    color: 'bg-blue-100 text-blue-800',
+  },
+  [BLOG_TAGS.JOTAI]: {
+    label: 'Jotai',
+    description: 'Jotai atomic state management library',
+    color: 'bg-indigo-100 text-indigo-800',
+  },
+  [BLOG_TAGS.STATE_MANAGEMENT]: {
+    label: 'State Management',
+    description: 'Application state management patterns and solutions',
+    color: 'bg-purple-100 text-purple-800',
+  },
+  [BLOG_TAGS.CMS]: {
+    label: 'CMS',
+    description: 'Content Management Systems and headless architecture',
+    color: 'bg-green-100 text-green-800',
   },
 };
 
