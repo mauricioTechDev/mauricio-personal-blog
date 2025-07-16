@@ -21,7 +21,7 @@ export default function BlogFilters({ availableTags, posts }: BlogFiltersProps) 
 
         return posts.filter(post => {
             if (!post.metadata?.tags) return false
-            return selectedTags.some(tag => post.metadata!.tags.includes(tag))
+            return selectedTags.every(tag => post.metadata!.tags.includes(tag))
         })
     }, [posts, selectedTags])
 
@@ -32,16 +32,16 @@ export default function BlogFilters({ availableTags, posts }: BlogFiltersProps) 
             return availableTags
         }
 
-        // Find all tags that appear on posts with any of the selected tags
+        // Find all tags that appear on posts with ALL of the selected tags
         const overlappingTags = new Set<BlogTag>()
         
         posts.forEach(post => {
             if (!post.metadata?.tags) return
             
-            // Check if this post has any of the selected tags
-            const hasSelectedTag = selectedTags.some(tag => post.metadata!.tags.includes(tag))
+            // Check if this post has ALL of the selected tags
+            const hasAllSelectedTags = selectedTags.every(tag => post.metadata!.tags.includes(tag))
             
-            if (hasSelectedTag) {
+            if (hasAllSelectedTags) {
                 // Add all tags from this post to available options
                 post.metadata.tags.forEach(tag => overlappingTags.add(tag))
             }
