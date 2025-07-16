@@ -25,6 +25,34 @@ export default function BlogFilters({ availableTags, posts }: BlogFiltersProps) 
         })
     }, [posts, selectedTags])
 
+    // Calculate which tags should be available based on current selection
+    const availableFilterTags = useMemo(() => {
+        if (selectedTags.length === 0) {
+            // Show all tags when nothing is selected
+            return availableTags
+        }
+
+        // Find all tags that appear on posts with any of the selected tags
+        const overlappingTags = new Set<BlogTag>()
+        
+        posts.forEach(post => {
+            if (!post.metadata?.tags) return
+            
+            // Check if this post has any of the selected tags
+            const hasSelectedTag = selectedTags.some(tag => post.metadata!.tags.includes(tag))
+            
+            if (hasSelectedTag) {
+                // Add all tags from this post to available options
+                post.metadata.tags.forEach(tag => overlappingTags.add(tag))
+            }
+        })
+
+        // Always include selected tags + any tags that overlap with them
+        return availableTags.filter(tag => 
+            selectedTags.includes(tag) || overlappingTags.has(tag)
+        )
+    }, [availableTags, selectedTags, posts])
+
     const toggleTag = (tag: BlogTag) => {
         setSelectedTags(prev => 
             prev.includes(tag) 
@@ -55,7 +83,7 @@ export default function BlogFilters({ availableTags, posts }: BlogFiltersProps) 
                 </div>
                 
                 <div className="flex flex-wrap gap-2">
-                    {availableTags.map(tag => {
+                    {availableFilterTags.map(tag => {
                         const tagMeta = TAG_METADATA[tag]
                         const isSelected = selectedTags.includes(tag)
                         
@@ -71,7 +99,7 @@ export default function BlogFilters({ availableTags, posts }: BlogFiltersProps) 
                                 {tagMeta.label}
                             </Button>
                         )
-                    })}''
+                    })}
                 </div>
 
                 {selectedTags.length > 0 && (
