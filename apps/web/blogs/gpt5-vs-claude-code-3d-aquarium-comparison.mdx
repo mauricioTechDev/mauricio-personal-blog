@@ -1,0 +1,139 @@
+import { BLOG_TAGS } from '@/lib/blog-tags'
+
+export const metadata = {
+  title: 'Claude Code vs GPT-5 (Cursor): My 3D Aquarium Test on Launch Day',
+  description: 'Testing GPT-5 against Claude Code with the same 3D aquarium challenge on launch day. Despite using supposedly identical models, Claude Code still came out ahead.',
+  date: '2025-08-08T12:00:00Z',
+  tags: [BLOG_TAGS.AI_DEVELOPMENT, BLOG_TAGS.BEST_PRACTICES, BLOG_TAGS.NEXTJS_REACT],
+  authors: ['Mauricio Acosta'],
+  abstract: 'Launch day test: GPT-5 (Cursor) vs Claude Code (Sonnet 4) building the same 3D aquarium. Same models, different results.',
+}
+
+Today's a big day — **August 8, 2025** — the day GPT-5 officially dropped.  
+
+Naturally, I had to test it. But instead of a quick coding prompt, I decided to run it through the same **one-shot challenge** I gave Claude Code (Sonnet 4): build a detailed 3D aquarium app.
+
+Here's the twist: both GPT-5 (through Cursor) and Sonner 4 (through Claude Code). But after running the test, I walked away still preferring Claude.
+
+## The Test
+
+I handed each AI the exact same prompt — no back-and-forth, no retries. Just one go at designing and implementing:
+
+- A glass-walled aquarium with sand, lights, and water effects  
+- Five different fish species, each with unique behaviors  
+- Seaweed, bubbles, and subtle water currents  
+- Interactive camera controls  
+- A performance-friendly, production-ready setup
+
+<details>
+<summary>Full Aquarium Prompt</summary>
+
+```
+3D Aquarium Implementation Plan
+1. Dependencies Setup
+   - Install Three.js (three) and its TypeScript types (@types/three)
+   - Install React Three Fiber (@react-three/fiber) for React integration
+   - Install React Three Drei (@react-three/drei) for additional 3D components and controls
+
+2. Core 3D Scene Structure
+   - Create components/Aquarium3D.tsx as the main aquarium component
+   - Set up Canvas with camera, lighting, and controls
+   - Implement OrbitControls for drag-to-rotate, zoom, and pan interactions
+
+3. Aquarium Environment
+   - Tank: Create transparent glass walls using BoxGeometry with glass material
+   - Floor: Add sandy textured floor with noise-based undulations
+   - Lighting: Set up ambient and directional lights with blue underwater ambiance
+   - Water Effects: Implement fog and particle system for bubbles
+
+4. Aquatic Animals (5 Species)
+   Clownfish
+      - Orange body with white stripes and black fins
+      - Orbital swimming pattern at mid-depth
+   Blue Tang
+      - Bright blue body with yellow tail and black markings
+      - Figure-8 swimming pattern
+   Green Sea Turtle
+      - Realistic shell geometry and flipper animations
+      - Slow, graceful swimming near bottom
+   Moon Jellyfish
+      - Translucent dome with flowing tentacles
+      - Vertical floating motion with tentacle sway
+   Reef Manta Ray
+      - Large wingspan with realistic wing-flapping animation
+      - Gliding motion near surface
+
+5. Interactive Controls
+   - Drag to rotate: OrbitControls for camera orbiting
+   - Scroll to zoom: Mouse wheel zoom functionality
+   - Shift+Drag to pan: Pan controls for view movement
+
+6. Environmental Details
+   - Seaweed: Create swaying plant models using custom geometry
+   - Bubbles: Particle system with upward movement and random drift
+   - Water Current: Subtle animation system affecting all elements
+
+7. Animation System
+   - Implement useFrame hook for continuous animations
+   - Create reusable swimming patterns and behaviors
+   - Add realistic physics-based movements
+
+8. Page Integration
+   - Update main page to display 3D Aquarium instead of/alongside Space Invaders
+   - Ensure responsive design and proper canvas sizing
+   - Add loading states and error boundaries
+
+9. Performance Optimization
+   - Implement proper disposal of geometries and materials
+   - Use efficient rendering techniques
+   - Add fps monitoring capabilities
+```
+
+</details>
+
+## The Results
+
+**GPT-5 (Cursor)**  
+Cursor's planning interface was impressive — it broke down my request methodically and asked for approval before starting. But when it came to execution, the result felt more like a *proof of concept*. Fish animation was minimal, environmental effects were sparse, and while it worked, it didn't capture the aquarium vision from my prompt.
+
+Here's what GPT-5 produced:
+
+<video width="100%" controls>
+  <source src="/videos/gpt5-cursor-demo.mp4" type="video/mp4" />
+  <source src="/videos/gpt5-cursor-demo.webm" type="video/webm" />
+  Your browser does not support the video tag.
+</video>
+*GPT-5/Cursor implementation - functional but basic*
+
+**Claude Code (Sonnet 4)**  
+Claude's approach was less ceremonious but hit more of the actual requirements. While the fish were still pretty basic, it made more genuine attempts to include the species I requested, added more environmental details, and felt like it was actually trying to match the spirit of my prompt.
+
+And here's Claude Code's version:
+
+<video width="100%" controls>
+  <source src="/videos/claude-code-demo.mp4" type="video/mp4" />
+  <source src="/videos/claude-code-demo.webm" type="video/webm" />
+  Your browser does not support the video tag.
+</video>
+*Claude Code implementation - closer to the prompt requirements (though still imperfect)*
+
+Neither result was production-ready, but Claude Code's version made a more honest attempt at fulfilling the specific requirements, even if the execution was still quite simple.
+
+## Why It Matters
+
+This wasn't just about building an aquarium. It was about testing whether I'd stick with Claude now that GPT-5 was out.
+
+Here's what I learned:
+
+* **Same model ≠ same results** — interface, tuning, and workflow matter a lot
+* GPT-5 (Cursor) shined in structured planning but felt weaker in direct execution  
+* Claude Code seemed better tuned for coding tasks that need more *follow-through*
+* For complex technical requirements, Claude made more genuine attempts to implement what was actually requested
+
+## Final Take
+
+On launch day, I really wanted GPT-5 to surprise me. And while it's impressive, for coding something creative and detail-heavy like this aquarium, **Claude Code still feels like the one I'd trust first**.
+
+That could change as tools evolve — but for today, Claude keeps the crown. 🐠
+
+*Have you tested GPT-5 against your favorite AI coding assistant? What differences did you notice? The AI development landscape keeps getting more interesting.*
