@@ -20,11 +20,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Mauricio Acosta Personal Website",
     description: "The personal website of Mauricio Acosta, a software engineer.",
-    url: "https://mauricioacosta.dev",
+    url: "https://www.mauricioacosta.dev",
     siteName: "Mauricio Acosta Personal Website",
     images: [
       {
-        url: "https://mauricioacosta.dev/apple-touch-icon.png",
+        url: "https://www.mauricioacosta.dev/apple-touch-icon.png",
         width: 180,
         height: 180,
         alt: "Mauricio Acosta Personal Website",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Mauricio Acosta Personal Website",
     description: "The personal website of Mauricio Acosta, a software engineer.",
-    images: ["https://mauricioacosta.dev/apple-touch-icon.png"],
+    images: ["https://www.mauricioacosta.dev/apple-touch-icon.png"],
     creator: "@mauricioTechDev",
   }
 };
