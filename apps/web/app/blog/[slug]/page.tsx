@@ -27,11 +27,11 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
         openGraph: {
             title: metadata.title,
             description: metadata.description,
-            url: `https://mauricioacosta.dev/blog/${slug}`,
+            url: `https://www.mauricioacosta.dev/blog/${slug}`,
             siteName: "Mauricio Acosta Personal Website",
             images: [
                 {
-                    url: "https://mauricioacosta.dev/apple-touch-icon.png",
+                    url: "https://www.mauricioacosta.dev/apple-touch-icon.png",
                     width: 180,
                     height: 180,
                     alt: metadata.title,
@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
             card: "summary_large_image",
             title: metadata.title,
             description: metadata.description,
-            images: ["https://mauricioacosta.dev/apple-touch-icon.png"],
+            images: ["https://www.mauricioacosta.dev/apple-touch-icon.png"],
             creator: "@mauricioTechDev",
         },
     }
