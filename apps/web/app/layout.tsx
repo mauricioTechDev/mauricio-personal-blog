@@ -24,9 +24,9 @@ export const metadata: Metadata = {
     siteName: "Mauricio Acosta Personal Website",
     images: [
       {
-        url: "https://mauricioacosta.dev/og-image.png",
-        width: 1200,
-        height: 630,
+        url: "https://mauricioacosta.dev/apple-touch-icon.png",
+        width: 180,
+        height: 180,
         alt: "Mauricio Acosta Personal Website",
       },
     ],
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Mauricio Acosta Personal Website",
     description: "The personal website of Mauricio Acosta, a software engineer.",
-    images: ["https://mauricioacosta.dev/og-image.png"],
+    images: ["https://mauricioacosta.dev/apple-touch-icon.png"],
     creator: "@mauricioTechDev",
   }
 };
