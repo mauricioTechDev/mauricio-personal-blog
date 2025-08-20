@@ -2,6 +2,7 @@ import { getBlogPosts } from "@/utils/getBlogPost"
 import { TAG_METADATA } from "@/lib/blog-tags"
 import Link from "next/link"
 import { Header } from "@/components/header"
+import { Metadata } from "next"
 
 
 type BlogPageProps = {
@@ -13,6 +14,41 @@ type BlogPostMetadata = {
     description: string
     date: string
     tags: string[]
+}
+
+export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
+    const { slug } = await params
+    const post = await import(`@/blogs/${slug}.mdx`)
+    const metadata: BlogPostMetadata = post.metadata
+
+    return {
+        title: metadata.title,
+        description: metadata.description,
+        openGraph: {
+            title: metadata.title,
+            description: metadata.description,
+            url: `https://mauricioacosta.dev/blog/${slug}`,
+            siteName: "Mauricio Acosta Personal Website",
+            images: [
+                {
+                    url: "https://mauricioacosta.dev/apple-touch-icon.png",
+                    width: 180,
+                    height: 180,
+                    alt: metadata.title,
+                },
+            ],
+            locale: "en_US",
+            type: "article",
+            publishedTime: metadata.date,
+        },
+        twitter: {
+            card: "summary_large_image",
+            title: metadata.title,
+            description: metadata.description,
+            images: ["https://mauricioacosta.dev/apple-touch-icon.png"],
+            creator: "@mauricioTechDev",
+        },
+    }
 }
 
 export default async function BlogPage({ params }: BlogPageProps) {
