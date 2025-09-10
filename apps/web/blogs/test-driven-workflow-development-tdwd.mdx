@@ -187,6 +187,268 @@ Validate each criterion before marking complete.
 `;
 ```
 
+## Implementation Patterns: The Iteration Challenge
+
+Now here's where I need to be completely honest with you: the examples I just showed are simplified one-shot workflows. They demonstrate the orchestration thinking, but they're missing the critical piece that makes TDWD actually work—**the iteration loop**.
+
+Real TDWD requires workflows that continue iterating until success criteria are met. This is where the rubber meets the road, and where different platforms handle things very differently. Let me show you some actual implementation patterns that demonstrate true iterative workflows.
+
+### The Problem with Linear Workflows
+
+Those GitHub Actions and LangChain examples? They run once and stop. But TDWD's power comes from the cycle: if your AI-generated content doesn't meet the brand voice requirement, or your generated code fails performance benchmarks, the workflow should automatically iterate with that feedback until it succeeds.
+
+Here's what real iterative TDWD looks like:
+
+### Pattern 1: GitHub Actions with Internal Loops
+
+```yaml
+# Real iterative TDWD workflow
+name: TDWD Feature Implementation
+on:
+  workflow_dispatch:
+    inputs:
+      feature_description:
+        required: true
+
+jobs:
+  iterative-development:
+    runs-on: ubuntu-latest
+    steps:
+      - name: TDWD Implementation Loop
+        run: |
+          max_iterations=5
+          iteration=1
+          
+          while [ $iteration -le $max_iterations ]; do
+            echo "🤖 TDWD Iteration $iteration"
+            
+            # AI generates/modifies implementation
+            ./scripts/ai-implement-feature.sh \
+              "${{ github.event.inputs.feature_description }}" \
+              ./previous-attempts.json
+            
+            # Run comprehensive validation
+            if ./scripts/validate-success-criteria.sh; then
+              echo "✅ All success criteria met!"
+              ./scripts/create-pr.sh
+              break
+            fi
+            
+            # Store failed attempt for next iteration learning
+            ./scripts/store-attempt-feedback.sh $iteration
+            
+            echo "❌ Criteria not met, iterating..."
+            iteration=$((iteration+1))
+          done
+          
+          if [ $iteration -gt $max_iterations ]; then
+            echo "🚨 Max iterations reached, escalating to human review"
+            ./scripts/create-review-issue.sh
+          fi
+```
+
+### Pattern 2: Python/LangChain with State Persistence
+
+```python
+class TDWDIterativeWorkflow:
+    def __init__(self, success_criteria, max_iterations=5):
+        self.success_criteria = success_criteria
+        self.max_iterations = max_iterations
+        self.iteration_history = []
+        self.ai_agents = self._initialize_agents()
+    
+    def execute_until_success(self, task_description):
+        """Execute TDWD loop until all criteria are met"""
+        
+        for iteration in range(1, self.max_iterations + 1):
+            print(f"🤖 TDWD Iteration {iteration}")
+            
+            # Generate solution with context from previous attempts
+            solution = self.ai_agents.orchestrate_solution(
+                task=task_description,
+                success_criteria=self.success_criteria,
+                previous_attempts=self.iteration_history,
+                iteration=iteration
+            )
+            
+            # Validate against all success criteria
+            validation_result = self._validate_solution(solution)
+            
+            if validation_result.all_criteria_met:
+                print("✅ Success! All criteria satisfied.")
+                return solution
+            
+            # Store this attempt for learning in next iteration
+            self.iteration_history.append({
+                'iteration': iteration,
+                'solution': solution,
+                'validation_failures': validation_result.failures,
+                'improvement_suggestions': validation_result.suggestions
+            })
+            
+            print(f"❌ {len(validation_result.failures)} criteria failed, iterating...")
+        
+        # Max iterations reached - escalate or fail gracefully
+        self._handle_max_iterations_reached(task_description)
+        
+    def _validate_solution(self, solution):
+        """Run all success criteria validations"""
+        failures = []
+        suggestions = []
+        
+        for criterion in self.success_criteria:
+            result = criterion.validate(solution)
+            if not result.passed:
+                failures.append(result.failure_reason)
+                suggestions.extend(result.improvement_suggestions)
+        
+        return ValidationResult(
+            all_criteria_met=len(failures) == 0,
+            failures=failures,
+            suggestions=suggestions
+        )
+```
+
+### Pattern 3: GitHub Actions with Cross-Run State Persistence
+
+Sometimes you need workflows that can persist state between separate workflow runs—especially useful for long-running AI tasks:
+
+```yaml
+# Workflow that persists state across multiple runs
+name: TDWD Persistent Iteration
+on:
+  workflow_dispatch:
+    inputs:
+      iteration:
+        description: 'Current iteration number'
+        default: '1'
+      task_id:
+        description: 'Unique task identifier'
+        required: true
+
+jobs:
+  tdwd-iteration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Load Previous Iteration State
+        if: github.event.inputs.iteration != '1'
+        run: |
+          # Download state from previous iteration
+          gh run download $(cat .github/tdwd-state/${{ github.event.inputs.task_id }}/latest_run) \
+            --name "tdwd-state-${{ github.event.inputs.task_id }}"
+          tar -xzf tdwd-state.tar.gz
+      
+      - name: Execute AI Workflow Iteration  
+        run: |
+          ./scripts/ai-workflow-step.sh \
+            --task-id "${{ github.event.inputs.task_id }}" \
+            --iteration "${{ github.event.inputs.iteration }}" \
+            --state-file "./state.json"
+      
+      - name: Validate Success Criteria
+        id: validate
+        run: |
+          success=$(./scripts/validate-criteria.sh)
+          echo "success=$success" >> $GITHUB_OUTPUT
+      
+      - name: Handle Success or Iterate
+        run: |
+          if [ "${{ steps.validate.outputs.success }}" = "true" ]; then
+            echo "✅ TDWD Complete - Creating final PR"
+            ./scripts/create-success-pr.sh
+          else
+            echo "❌ Criteria not met - Scheduling next iteration"
+            
+            # Save current state
+            tar -czf tdwd-state.tar.gz ./state.json ./logs/ ./artifacts/
+            
+            # Trigger next iteration
+            next_iteration=$(( ${{ github.event.inputs.iteration }} + 1 ))
+            if [ $next_iteration -le 5 ]; then
+              gh workflow run tdwd-persistent.yml \
+                -f iteration=$next_iteration \
+                -f task_id="${{ github.event.inputs.task_id }}"
+            else
+              echo "🚨 Max iterations reached - Creating review issue"
+              ./scripts/escalate-to-human.sh
+            fi
+          fi
+      
+      - name: Save State Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: "tdwd-state-${{ github.event.inputs.task_id }}"
+          path: tdwd-state.tar.gz
+```
+
+### Pattern 4: Event-Driven Iteration with Webhooks
+
+For platforms that support webhooks or API triggers, you can create event-driven iteration:
+
+```typescript
+// Express.js webhook handler for external TDWD iteration
+app.post('/tdwd-iterate', async (req, res) => {
+  const { taskId, iteration, validationResults } = req.body;
+  
+  if (validationResults.allCriteriaMet) {
+    // Success! Deploy or finalize
+    await deployWorkflowResult(taskId);
+    return res.json({ status: 'completed' });
+  }
+  
+  if (iteration >= MAX_ITERATIONS) {
+    // Escalate to human review
+    await createHumanReviewTask(taskId, validationResults);
+    return res.json({ status: 'escalated' });
+  }
+  
+  // Trigger next iteration with failure context
+  const nextIteration = iteration + 1;
+  await triggerTDWDIteration(taskId, nextIteration, {
+    previousFailures: validationResults.failures,
+    improvementSuggestions: validationResults.suggestions
+  });
+  
+  res.json({ 
+    status: 'iterating', 
+    nextIteration: nextIteration 
+  });
+});
+```
+
+### The State Management Challenge
+
+The real technical challenge in TDWD isn't the orchestration—it's **state management**. Each iteration needs to learn from previous attempts:
+
+- **What failed and why?**
+- **What partial successes can be built upon?**
+- **What approaches should be avoided?**
+- **How can the AI agents improve their next attempt?**
+
+Different platforms handle this differently:
+
+- **GitHub Actions**: Artifacts, workflow outputs, external storage
+- **LangChain/Python**: In-memory state, databases, vector stores for context
+- **Cloud Workflows**: Managed state services, step functions
+- **Local Development**: File system, local databases, configuration files
+
+### Iteration Strategies That Work
+
+**Graduated Feedback**: Early iterations might be simple pass/fail, but later iterations can provide detailed feedback to help AI agents improve.
+
+**Context Accumulation**: Each iteration adds more context about what works and what doesn't, making subsequent attempts more informed.
+
+**Parallel Exploration**: Run multiple approaches simultaneously and compare results, then iterate on the most promising path.
+
+**Human Checkpoints**: Include optional human review points where complex decisions can be escalated without stopping the entire workflow.
+
+### Why This Matters
+
+Without real iteration, TDWD is just fancy workflow orchestration. **The iteration loop is what makes it actually test-driven**—the continuous validation and refinement until business outcomes are achieved.
+
+The examples I showed earlier demonstrate the thinking patterns, but these iterative implementations show how TDWD actually works in practice. Choose the pattern that fits your platform and organizational needs.
+
 ## Getting Started with TDWD
 
 ### 1. Start Small
