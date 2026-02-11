@@ -1,0 +1,212 @@
+import { BLOG_TAGS } from '@/lib/blog-tags'
+
+export const metadata = {
+  title: 'tdd-ai: Discipline Over Intelligence — TDD Guardrails for AI Coding Agents',
+  description: 'Introducing tdd-ai, a CLI that enforces the red-green-refactor cycle on AI coding agents. Built with Claude Code in Go, published on npm, and MIT licensed.',
+  date: '2026-02-10T12:00:00Z',
+  tags: [BLOG_TAGS.AI_DEVELOPMENT, BLOG_TAGS.BEST_PRACTICES],
+  authors: ['Mauricio Acosta'],
+}
+
+I've been thinking a lot about when AI is actually useful for writing code — and more importantly, when it isn't. After months of working with AI coding agents daily, I've landed on a simple mental model that explains almost every success and failure I've experienced: **validation asymmetry**.
+
+When validating output is dramatically easier than producing it, AI thrives. When it isn't, AI flounders. And it turns out that TDD creates exactly the right conditions — running a test suite is trivial, but writing code that passes every test correctly is hard. So I built a tool that forces AI agents to stay in that sweet spot.
+
+## The Validation Asymmetry Problem
+
+Here's what I've observed: AI agents are remarkably capable at generating code, but they have no inherent sense of discipline. Give an agent a feature request and it'll happily produce hundreds of lines of code — some correct, some not, some solving problems you never asked about.
+
+The issue isn't intelligence. These models are incredibly capable. The issue is **structure**. Without guardrails, an AI agent treats code generation like freewriting — just keep going until it feels done.
+
+TDD flips this dynamic on its head. When you have a failing test, the goal is crystal clear: make it pass. When it passes, the goal shifts: refactor without breaking anything. At every step, the test suite provides an objective, automated check on whether the agent is doing the right thing. Validation is cheap. Production is hard. That's the asymmetry.
+
+I realized this principle could be enforced with tooling — not just suggested in a prompt, but structurally required through a state machine.
+
+## What AI Agents Actually Do Wrong
+
+I kept running into the same patterns when working with AI coding agents on real projects:
+
+- **Writing tests and implementation simultaneously.** The agent produces a test file and an implementation file in one shot. The tests are reverse-engineered from the implementation, so they pass by construction — not because they validate behavior.
+- **Modifying tests to match broken code.** When the implementation doesn't work, the agent "fixes" the problem by weakening the tests instead of fixing the code.
+- **Skipping the red phase entirely.** The agent never confirms that a test actually fails before writing the implementation. Without a red phase, you have no evidence the test is meaningful.
+- **Adding unrequested features.** Given freedom, agents love to over-engineer — adding error handling for impossible cases, abstracting things that don't need abstraction, and building features nobody asked for.
+
+These aren't intelligence problems. They're discipline problems. And discipline is exactly what a state machine can enforce.
+
+## Introducing tdd-ai
+
+So I built [tdd-ai](https://github.com/mauricioTechDev/tdd-ai).
+
+It's a CLI state machine that enforces the red-green-refactor cycle. It's not a test runner. It's not a code generator. It's not an AI itself. It's the _structure_ that keeps your AI agent honest.
+
+**What tdd-ai is:** A framework-agnostic, language-agnostic, agent-agnostic CLI that tracks your TDD state and provides phase-specific instructions your AI agent can follow.
+
+**What tdd-ai is NOT:** It doesn't run your tests, generate your code, or interact with any AI provider. It provides structure, not execution.
+
+Install it globally from npm:
+
+```bash
+npm install -g tdd-ai
+```
+
+Here's what a basic workflow looks like:
+
+```bash
+# Initialize a new TDD session
+tdd-ai init --test-cmd "npm test"
+
+# Add a spec you want to implement
+tdd-ai spec add "User authentication validates email format"
+
+# Get phase-specific instructions for your AI agent
+tdd-ai guide
+
+# Move through phases: red → green → refactor
+tdd-ai phase next
+
+# When all phases are complete, finish the spec
+tdd-ai complete
+```
+
+## How the State Machine Works
+
+The state machine enforces three phases, and each phase has strict rules about what the agent is and isn't allowed to do.
+
+**Red Phase** — Write a failing test. The agent must write a test that captures the desired behavior, and that test _must fail_. No implementation code is allowed. No modifying existing tests to pass. The point is to establish a clear, failing assertion that proves the test is meaningful.
+
+**Green Phase** — Make it pass. The agent writes the minimum implementation needed to make the failing test pass. No refactoring. No new features. No "improvements." Just make the red test go green.
+
+**Refactor Phase** — Clean up. The agent can restructure, rename, extract, and optimize — but all tests must continue to pass. No new behavior. No new tests. Pure structural improvement.
+
+The key mechanism is the `guide` command with JSON output. This is what your AI agent actually parses:
+
+```json
+{
+  "session": {
+    "id": "a1b2c3d4",
+    "status": "active",
+    "currentSpec": "User authentication validates email format"
+  },
+  "phase": {
+    "name": "red",
+    "goal": "Write a FAILING test that captures the desired behavior",
+    "rules": [
+      "Write ONLY test code - no implementation code",
+      "Test MUST fail when run",
+      "Do NOT modify existing passing tests",
+      "Focus on ONE specific behavior"
+    ],
+    "testCommand": "npm test",
+    "nextAction": "Run tests to confirm they FAIL, then use 'tdd-ai phase next'"
+  }
+}
+```
+
+This structured output gives the agent everything it needs: what phase it's in, what the rules are, what command to run, and what to do next. No ambiguity. No room for creative interpretation.
+
+## Using tdd-ai with Your AI Agent
+
+Here's how I use it in practice. There are three approaches, from simplest to most automated.
+
+### 1. The Prompt Method
+
+The most straightforward approach — run `tdd-ai guide` and paste the output into your agent's context:
+
+```text
+You are working in a TDD session managed by tdd-ai.
+
+CURRENT PHASE: Red
+CURRENT SPEC: "User authentication validates email format"
+
+RULES:
+- Write ONLY test code — no implementation
+- The test MUST fail when run
+- Do NOT modify existing passing tests
+- Focus on ONE specific behavior
+
+After writing the test, run: npm test
+Confirm the test FAILS, then tell me to advance to the green phase.
+```
+
+### 2. Agent Rules Files
+
+For a more integrated setup, add tdd-ai instructions to your agent's rules file. This works with `.cursor/rules`, `.windsurfrules`, `CLAUDE.md`, or any agent-specific configuration:
+
+```text
+## TDD Discipline (tdd-ai)
+
+Before writing any code, check the current TDD phase:
+  tdd-ai guide --format json
+
+Follow the phase rules strictly:
+- RED: Only write failing tests. No implementation code.
+- GREEN: Only write implementation to pass failing tests. Minimal code.
+- REFACTOR: Only restructure. All tests must continue passing.
+
+Never skip phases. Never write tests and implementation together.
+```
+
+### 3. Hooks for Automated Enforcement
+
+For Cursor, you can use task hooks to automatically inject tdd-ai state into every agent interaction:
+
+```json
+{
+  "hooks": {
+    "on_task_start": [
+      {
+        "command": "tdd-ai guide --format json",
+        "description": "Load current TDD phase and rules"
+      }
+    ],
+    "on_file_save": [
+      {
+        "command": "tdd-ai guide --format json",
+        "description": "Re-check TDD phase after changes"
+      }
+    ]
+  }
+}
+```
+
+## Built with Claude Code, in a Language I Never Used
+
+Here's the part I find most interesting: I built tdd-ai entirely with Claude Code, in Go — a language I had never written before.
+
+The irony isn't lost on me. An AI coding agent built a tool whose entire purpose is to discipline AI coding agents. But it also validates the core thesis: the validation asymmetry principle made this possible. Go has excellent test tooling. At every step, I could run `go test ./...` and know immediately whether the AI-generated code was correct — even though I couldn't have written that code myself.
+
+I didn't need to understand Go's concurrency model or its package system in detail. I needed to understand what the tool should _do_, write specs for that behavior, and let Claude Code iterate through the red-green-refactor cycle. The test suite was my proxy for expertise.
+
+I've been dogfooding tdd-ai in my own work daily since building it, and the difference in output quality is noticeable. The agent stays focused, the code stays minimal, and the tests stay meaningful.
+
+## Key Features
+
+- **Batch operations** — Add multiple specs at once and work through them sequentially
+- **Retrofit mode** — Already have code without tests? Start from existing implementation and add test coverage:
+  ```bash
+  tdd-ai spec add "Existing login validates credentials" --retrofit
+  ```
+- **Test command integration** — Configure your test command once, reference it throughout the session
+- **Quick completion** — When tests pass and you're satisfied, `tdd-ai complete` wraps up the current spec
+- **JSON output** — Every command supports `--format json` for machine-readable output that agents can parse
+- **CI/CD friendly** — Exit codes and structured output make it easy to integrate into pipelines
+
+## Get Started
+
+```bash
+npm install -g tdd-ai
+```
+
+- **GitHub:** [github.com/mauricioTechDev/tdd-ai](https://github.com/mauricioTechDev/tdd-ai)
+- **npm:** [npmjs.com/package/tdd-ai](https://www.npmjs.com/package/tdd-ai)
+- **License:** MIT — use it, fork it, build on it.
+
+I made this for myself, but I hope you find it useful too. If you're working with AI coding agents and want them to produce better, more disciplined output, give tdd-ai a try.
+
+## What Comes Next
+
+I'll keep refining tdd-ai as I use it. There are rough edges, and the more people use it, the more patterns will emerge for integrating it with different agents and workflows.
+
+But more than anything, I hope this inspires people to build their own tools with AI agents. I wrote a fully functional CLI in a language I'd never used, published it to npm, and shipped it in a matter of days. The barrier to building developer tools has never been lower.
+
+The question isn't whether AI can write code — it's whether we can give it the discipline to write code _correctly_. That's the problem tdd-ai solves, and it's the problem I think more of us should be working on.
