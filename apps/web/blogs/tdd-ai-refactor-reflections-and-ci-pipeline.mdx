@@ -1,0 +1,124 @@
+import { BLOG_TAGS } from '@/lib/blog-tags'
+
+export const metadata = {
+  title: 'tdd-ai: Teaching AI Agents to Actually Refactor',
+  description: 'tdd-ai now enforces refactoring with 6 structured reflection questions agents must answer before advancing, plus a CI pipeline with golangci-lint and Dependabot.',
+  date: '2026-02-13T12:00:00Z',
+  tags: [BLOG_TAGS.AI_DEVELOPMENT, BLOG_TAGS.BEST_PRACTICES],
+  authors: ['Mauricio Acosta'],
+}
+
+A few days ago I [introduced tdd-ai](/blog/tdd-ai-tdd-guardrails-for-ai-agents) — a CLI state machine that enforces the red-green-refactor cycle on AI coding agents. The thesis was simple: AI agents lack discipline, and a state machine can provide it.
+
+Since then I've been using tdd-ai daily, and I found the first real gap. The red and green phases work well — the agent writes a failing test, then makes it pass. But the refactor phase? The agent blows right past it. Every single time.
+
+This post covers two PRs that address that gap and start maturing the project: a reflection system that forces agents to engage with refactoring ([PR #1](https://github.com/mauricioTechDev/tdd-ai/pull/1)), and a CI pipeline that holds the tool itself to the same quality bar it demands of its users ([PR #2](https://github.com/mauricioTechDev/tdd-ai/pull/2)).
+
+## The Refactoring Problem
+
+I noticed the pattern while using tdd-ai to add integration tests to an existing .NET API. The agent would reach the refactor phase, note that all tests pass, and immediately call `tdd-ai complete`. No pause. No consideration of whether the code could be cleaner. Just "tests pass, we're done."
+
+The problem was structural. The refactor phase had no verification mechanism beyond "tests pass" — which is the exact same check as the green phase. There was zero friction and zero forced engagement. From the agent's perspective, refactoring was indistinguishable from being done.
+
+This matters because refactoring is where code quality actually improves. The red and green phases get you working software. The refactor phase gets you _maintainable_ software. An agent that skips it produces code that works today but becomes harder to change tomorrow.
+
+## Six Questions That Change Everything
+
+The solution is a gate: 6 structured reflection questions that the agent must answer before it can advance past the refactor phase.
+
+When the agent enters the refactor phase, these questions are automatically loaded into the session:
+
+1. Can I make my test suite more expressive?
+2. Does my test suite provide reliable feedback?
+3. Are my tests isolated?
+4. Can I reduce duplication in my test suite or implementation code?
+5. Can I make my implementation code more descriptive?
+6. Can I implement something more efficiently?
+
+The agent answers them through the CLI:
+
+```bash
+tdd-ai refactor status                    # See all 6 questions with status
+tdd-ai refactor reflect 1 --answer "Tests use descriptive names that read as specifications"
+tdd-ai refactor reflect 2 --answer "Test failures pinpoint the exact broken behavior"
+# ... answer all 6
+tdd-ai complete                           # Now allowed
+```
+
+If the agent tries to skip ahead:
+
+```bash
+$ tdd-ai phase next
+Error: 6 reflection questions must be answered before advancing from refactor phase
+```
+
+Each answer is validated with a simple word minimum:
+
+```go
+const MinAnswerWords = 5
+
+func ValidateAnswer(answer string) error {
+    words := len(strings.Fields(answer))
+    if words < MinAnswerWords {
+        return fmt.Errorf("answer must be at least %d words, got %d", MinAnswerWords, words)
+    }
+    return nil
+}
+```
+
+The minimum is intentionally low. The point isn't to force lengthy essays — it's to force genuine engagement. If the agent evaluates a question and decides "no changes needed," a short explanation is fine. What it can't do is skip the evaluation entirely.
+
+This isn't about catching lazy agents with a quiz. It's about creating a structural pause in the workflow where the agent has to stop generating code and start evaluating it. The questions are designed to prompt the kind of thinking that experienced developers do instinctively during code review.
+
+## Why an Audit Trail Matters
+
+Every reflection answer is stored in the session file (`.tdd-ai.json`). This means when you review AI-assisted work, you don't just see the code — you see the agent's reasoning about whether refactoring was needed and what it considered.
+
+This changes code review of AI-generated code. Instead of guessing whether the agent thought about code quality, you can read its answers. "Did the agent consider test isolation?" Check question 3. "Did it think about duplication?" Check question 4. The session file becomes documentation of the agent's decision-making process.
+
+For teams adopting AI-assisted development, this is significant. Auditable reasoning about code quality decisions gives reviewers something concrete to evaluate beyond just "does the code work."
+
+## Making the Tool Trust Itself: CI and Linting
+
+A tool that enforces code quality on others should hold itself to the same standard. The second PR adds a CI pipeline, linting, and dependency management.
+
+The CI workflow runs on every PR and push to `main`:
+
+```yaml
+steps:
+  - name: Lint
+    uses: golangci/golangci-lint-action@v7
+    with:
+      version: v2.9
+
+  - name: Test
+    run: go test -race -coverprofile=coverage.out ./...
+
+  - name: Build
+    run: go build -o /dev/null .
+```
+
+Three checks: lint the code, run all tests with the race detector enabled, and verify the binary builds cleanly. The race detector is important — it catches concurrency issues that local testing might miss.
+
+The golangci-lint configuration enables errcheck, staticcheck, gocritic, misspell, and revive with practical exclusions. `fmt.Fprint*` calls are excluded from errcheck because CLI output functions return errors that are safe to ignore. Noisy revive rules like `exported` and `package-comments` are disabled. The goal is useful signal, not pedantic noise.
+
+The initial lint run surfaced issues across 16 files — struct field alignment for better memory layout, De Morgan's law simplifications, unused parameters. All fixed in the same PR, all 85 tests still passing.
+
+Dependabot is configured for weekly grouped updates on both Go modules and GitHub Actions, keeping dependencies current without manual tracking.
+
+## The Bigger Picture
+
+These two PRs represent tdd-ai moving from "it works" to "it's maturing." The reflection system addresses the most obvious gap in the TDD enforcement — the refactor phase needed teeth. The CI pipeline ensures the tool itself meets the bar it sets for others.
+
+The reflection questions are a starting point. Future iterations may allow customizable questions per project, or extend structured checks to other phases. The project tracks planned improvements in an `IMPROVEMENTS.md` file, derived from analyzing real LLM sessions. Several enhancements have already shipped — batch spec add, multi-ID spec done, retrofit mode, test result validation — and more are coming from continued daily usage.
+
+## Get Started
+
+```bash
+npm install -g tdd-ai
+```
+
+- **GitHub:** [github.com/mauricioTechDev/tdd-ai](https://github.com/mauricioTechDev/tdd-ai)
+- **npm:** [npmjs.com/package/tdd-ai](https://www.npmjs.com/package/tdd-ai)
+- **PR #1 (Reflections):** [github.com/mauricioTechDev/tdd-ai/pull/1](https://github.com/mauricioTechDev/tdd-ai/pull/1)
+- **PR #2 (CI/Linting):** [github.com/mauricioTechDev/tdd-ai/pull/2](https://github.com/mauricioTechDev/tdd-ai/pull/2)
